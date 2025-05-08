@@ -1,0 +1,56 @@
+name: Update CSV Decks
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  update-csv-index:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4 
+        with:
+          fetch-depth: 0
+
+      - name: Update index.html with CSV data
+        run: |
+          set -e
+          CSV_DIR="decks"
+
+          # List all the .csv files inside CSV_DIR
+          CSV_FILES=()
+          while IFS= read -r file; do
+            CSV_FILES+=("$file")
+          done < <(find "$CSV_DIR" -name '*.csv' | sort)
+
+          if [[ ${#CSV_FILES[@]} -eq 0 ]]; then
+            echo "No CSV files found. Skipping deck update."
+          else
+            echo "CSV files found: ${CSV_FILES[@]}"
+
+            # Generate array without extension
+            DECK_NAMES=()
+            for file in "${CSV_FILES[@]}"; do
+              filename=$(basename "$file" .csv)
+              DECK_NAMES+=("$filename")
+            done
+
+            # Convert to JSON arrays
+            DECK_NAMES_JSON=$(printf '%s\n' "${DECK_NAMES[@]}" | jq -Rc . | jq -cs .)
+            echo "DECK_NAMES_JSON: $DECK_NAMES_JSON"
+
+            # Replace the decks array, regardless of its current contents
+            sed -i.blk -E "s|decks: \[[^]]*\]|decks: $DECK_NAMES_JSON|" ./index.html
+          fi
+
+      - name: Commit changes
+        run: |
+          git add index.html
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git commit -m "Update index.html with CSV decks" || echo "No changes to commit"
+          git push origin main

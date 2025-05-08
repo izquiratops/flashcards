@@ -1,0 +1,47 @@
+:root {
+    --pico-border-radius: 2rem;
+}
+
+p, progress {
+    margin: 0;
+}
+
+.container {
+    height: 100svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.drag-and-drop {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.3rem;
+    border: 2px dashed var(--pico-muted-border-color);
+}
+
+.grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin: 1rem;
+}
+
+.flashcard {
+    display: grid;
+    place-content: center;
+    text-align: center;
+
+    border-radius: 1rem;
+    min-height: 200px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.hidden {
+    display: none;
+}

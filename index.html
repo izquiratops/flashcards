@@ -1,309 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Japanese Vocabulary Flashcards</title>
-    <!-- Tailwind CSS via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Alpine.js -->
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flashcards</title>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.pink.min.css">
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
-    <div class="container max-w-lg mx-auto" x-data="flashcardApp()">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Japanese Vocabulary Flashcards</h1>
-        
-        <!-- CSV Upload Area -->
-        <div x-show="!started" class="mb-8">
-            <div 
-                class="border-2 border-dashed rounded-lg p-6 mb-6 transition-all"
-                :class="isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300'"
-                @dragover.prevent="isDragging = true"
-                @dragleave="isDragging = false"
-                @drop.prevent="handleDrop($event)"
-            >
-                <p class="text-center mb-4">Drag and drop your CSV file here or click to select it</p>
-                <div class="flex justify-center">
-                    <button 
-                        @click="$refs.fileInput.click()" 
-                        class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors"
-                    >
-                        Select CSV File
-                    </button>
-                    <input 
-                        type="file" 
-                        x-ref="fileInput" 
-                        @change="handleFileSelect($event)" 
-                        accept=".csv,text/csv" 
-                        class="hidden"
-                    >
-                </div>
-                
-                <div class="mt-4 text-sm text-gray-600">
-                    <p>CSV Format: word,reading,translation</p>
-                    <p>Example: 学校,がっこう,School</p>
-                </div>
-            </div>
-            
-            <button 
-                @click="loadDefaultVocabulary()" 
-                class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors"
-            >
-                Load Default Vocabulary
-            </button>
-        </div>
-        
-        <!-- Flashcards Container -->
-        <div x-show="started" class="text-center">
-            <p class="mb-6 text-gray-600">Click on the card to see the translation. Click again to move to the next word.</p>
-            
-            <div 
-                @click="toggleTranslation()"
-                class="bg-white rounded-xl shadow-md p-8 mb-6 min-h-[200px] flex flex-col items-center justify-center cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg select-none"
-            >
-                <div class="text-3xl font-bold mb-2" x-text="currentWord.word"></div>
-                <div class="text-lg text-gray-600 mb-4" x-text="currentWord.reading"></div>
-                <div 
-                    class="text-xl text-gray-700"
-                    x-show="showingTranslation" 
-                    x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 transform scale-95"
-                    x-transition:enter-end="opacity-100 transform scale-100"
-                    x-text="currentWord.translation"
-                ></div>
-            </div>
-            
-            <div class="text-gray-600 mb-6" x-text="`Progress: ${seenCount} of ${vocabulary.length} words seen`"></div>
-            
-            <div class="flex justify-center gap-3">
-                <button 
-                    @click="copyToClipboard()" 
-                    class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded text-sm transition-colors flex items-center"
-                    :class="copied ? 'bg-green-500 hover:bg-green-600' : ''"
-                >
-                    <span x-text="copied ? 'Copied!' : 'Copy Word'"></span>
-                </button>
-                <button 
-                    @click="resetProgress()" 
-                    class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded text-sm transition-colors"
-                >
-                    Reset Progress
-                </button>
-                <button 
-                    @click="backToUpload()" 
-                    class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded text-sm transition-colors"
-                >
-                    Back to Upload
-                </button>
-            </div>
 
-            <div x-show="copied" 
-                 x-transition:enter="transition ease-out duration-300"
-                 x-transition:enter-start="opacity-0"
-                 x-transition:enter-end="opacity-100"
-                 x-transition:leave="transition ease-in duration-200"
-                 x-transition:leave-start="opacity-100"
-                 x-transition:leave-end="opacity-0"
-                 class="mt-4 text-sm text-green-600">
-                Word copied to clipboard
-            </div>
+<body x-data="flashcardApp()">
+  <main class="container">
+    <h1 class="text-center">頑張りましょう 🎊</h1>
+    <!-- 1. Home Screen -->
+    <article x-show="page === 'home'" class="drag-and-drop text-center" :class="isDraggingFile ? 'border-primary' : ''"
+      @dragover.prevent="isDraggingFile = true" @dragleave="isDraggingFile = false" @drop.prevent="handleDrop($event)">
+      <p>ファイルを<strong>ここ</strong>にドロップしてください</p>
+      <button @click="$refs.fileInput.click()">ファイルを選択</button>
+      <input type="file" x-ref="fileInput" @change="handleFileSelect($event)" accept=".csv,text/csv"
+        style="display: none;">
+      <small>
+        <p>CSV Format: word,reading</p>
+        <p>Example: 学校,がっこう</p>
+      </small>
+    </article>
+    <section x-show="page === 'home'">
+      <h3 class="text-center">プレビルトデッキ 🐣</h3>
+      <div class="grid">
+        <template x-for="(deck, index) in decks" :key="index">
+          <button @click="loadDeck(deck)">
+            <span x-text="deck"></span>
+          </button>
+        </template>
+      </div>
+    </section>
+    <!-- 2. Ingame Screen -->
+    <article x-show="page === 'ingame'" @click="toggleReading()" class="flashcard">
+      <h1 x-text="currentWord.word"></h1>
+      <h3 :class="readingHidden ? 'hidden' : ''" x-text="currentWord.reading"></h3>
+    </article>
+    <section x-show="page === 'ingame'" class="text-center">
+      <p x-text="`${index} of ${vocabulary.length} words seen`"></p>
+      <progress :value="index + 1" :max="vocabulary.length + 1"></progress>
+      <div class="grid">
+        <button @click="goToJisho()">辞書に検索する</button>
+        <button class="secondary" @click="backToHome()">ホームへ</button>
+      </div>
+    </section>
+  </main>
+  <script>
+    function flashcardApp() {
+      return {
+        decks: ["JLPT_N4","ドリル"],
+        vocabulary: [],
+        currentWord: { word: '', reading: '' },
+        index: 0,
+        page: 'home', // 'home' or 'ingame'
+        isDraggingFile: false,
+        readingHidden: true,
 
-            <button 
-                @click="nextWord()" 
-                class="mt-6 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded text-sm transition-colors"
-            >
-                Next Word
-            </button>
-        </div>
-    </div>
+        showNewWord(index) {
+          this.readingHidden = true;
+          this.currentWord = this.vocabulary[this.index];
+        },
 
-    <script>
-        function flashcardApp() {
-            return {
-                vocabulary: [],
-                defaultVocabulary: [
-                    { word: '復習', reading: 'ふくしゅう', translation: 'Review' },
-                    { word: 'バス', reading: 'ばす', translation: 'Bus' },
-                    { word: '学校', reading: 'がっこう', translation: 'School' },
-                    { word: '予約', reading: 'よやく', translation: 'Reservation' },
-                    { word: 'お正月', reading: 'おしょうがつ', translation: 'New Year' },
-                    { word: '掃除', reading: 'そうじ', translation: 'Cleaning' },
-                    { word: '料理', reading: 'りょうり', translation: 'Cooking, food' },
-                    { word: '切符', reading: 'きっぷ', translation: 'Ticket' },
-                    { word: '図書館', reading: 'としょかん', translation: 'Library' },
-                    { word: '来月', reading: 'らいげつ', translation: 'Next month' },
-                    { word: '名古屋', reading: 'なごや', translation: 'Nagoya (city)' },
-                    { word: '引っ越し', reading: 'ひっこし', translation: 'Moving house' },
-                    { word: '富士山', reading: 'ふじさん', translation: 'Mount Fuji' },
-                    { word: '登りたい', reading: 'のぼりたい', translation: 'Want to climb' },
-                    { word: 'スポーツ', reading: 'すぽーつ', translation: 'Sports' },
-                    { word: '体', reading: 'からだ', translation: 'Body' },
-                    { word: '高校野球', reading: 'こうこうやきゅう', translation: 'High school baseball' },
-                    { word: '友達', reading: 'ともだち', translation: 'Friend' },
-                    { word: '問題', reading: 'もんだい', translation: 'Problem, question' },
-                    { word: '意見', reading: 'いけん', translation: 'Opinion' }
-                ],
-                currentWord: { word: '', reading: '', translation: '' },
-                seenIndices: new Set(),
-                showingTranslation: false,
-                started: false,
-                isDragging: false,
-                copied: false,
-                
-                get seenCount() {
-                    return this.seenIndices.size;
-                },
-                
-                init() {
-                    // Initialization
-                },
-                
-                getRandomUniqueIndex() {
-                    // If we've seen all words, reset
-                    if (this.seenIndices.size >= this.vocabulary.length) {
-                        this.seenIndices.clear();
-                    }
-                    
-                    // Find an unseen index
-                    let index;
-                    do {
-                        index = Math.floor(Math.random() * this.vocabulary.length);
-                    } while (this.seenIndices.has(index));
-                    
-                    this.seenIndices.add(index);
-                    return index;
-                },
-                
-                showNewWord() {
-                    const index = this.getRandomUniqueIndex();
-                    this.currentWord = this.vocabulary[index];
-                    this.showingTranslation = false;
-                    this.copied = false;
-                },
-                
-                toggleTranslation() {
-                    if (this.showingTranslation) {
-                        this.nextWord();
-                    } else {
-                        this.showingTranslation = true;
-                    }
-                },
-                
-                nextWord() {
-                    this.showNewWord();
-                },
-                
-                resetProgress() {
-                    this.seenIndices.clear();
-                    this.showNewWord();
-                },
-                
-                copyToClipboard() {
-                    navigator.clipboard.writeText(this.currentWord.word)
-                        .then(() => {
-                            this.copied = true;
-                            setTimeout(() => {
-                                this.copied = false;
-                            }, 2000);
-                        })
-                        .catch(err => {
-                            console.error('Error copying to clipboard:', err);
-                            alert('Could not copy to clipboard. Please try again.');
-                        });
-                },
-                
-                processCSV(csvText) {
-                    const lines = csvText.split(/\r\n|\n/);
-                    const newVocabulary = [];
-                    
-                    for (let i = 0; i < lines.length; i++) {
-                        const line = lines[i].trim();
-                        if (!line) continue;
-                        
-                        // Find the position of the first and second commas
-                        const firstCommaIndex = line.indexOf(',');
-                        const secondCommaIndex = line.indexOf(',', firstCommaIndex + 1);
-                        
-                        // Only process if we have at least two commas
-                        if (firstCommaIndex !== -1 && secondCommaIndex !== -1) {
-                            const word = line.substring(0, firstCommaIndex).trim();
-                            const reading = line.substring(firstCommaIndex + 1, secondCommaIndex).trim();
-                            const translation = line.substring(secondCommaIndex + 1).trim();
-                            
-                            newVocabulary.push({
-                                word: word,
-                                reading: reading,
-                                translation: translation
-                            });
-                        }
-                    }
-                    
-                    if (newVocabulary.length > 0) {
-                        this.vocabulary = newVocabulary;
-                        this.startFlashcards();
-                    } else {
-                        alert('Could not load any words from the CSV file. Make sure the format is correct.');
-                    }
-                },
-                
-                startFlashcards() {
-                    this.seenIndices.clear();
-                    this.started = true;
-                    this.showNewWord();
-                },
-                
-                backToUpload() {
-                    this.started = false;
-                },
-                
-                loadDefaultVocabulary() {
-                    fetch('JLPT N4.csv')
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-                            return response.text();
-                        })
-                        .then(csvText => {
-                            this.processCSV(csvText);
-                        })
-                        .catch(error => {
-                            console.error('Error loading default vocabulary file:', error);
-                            alert('Could not load the default vocabulary file. Using built-in fallback vocabulary instead.');
-                            
-                            // Fallback to built-in vocabulary if file loading fails
-                            this.vocabulary = [...this.defaultVocabulary];
-                            this.startFlashcards();
-                        });
-                },
-                
-                handleDrop(event) {
-                    this.isDragging = false;
-                    const files = event.dataTransfer.files;
-                    this.handleFiles(files);
-                },
-                
-                handleFileSelect(event) {
-                    const files = event.target.files;
-                    this.handleFiles(files);
-                },
-                
-                handleFiles(files) {
-                    if (files.length > 0) {
-                        const file = files[0];
-                        if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
-                            const reader = new FileReader();
-                            reader.onload = (e) => {
-                                this.processCSV(e.target.result);
-                            };
-                            reader.readAsText(file);
-                        } else {
-                            alert('Please select a valid CSV file.');
-                        }
-                    }
-                }
-            };
-        }
-    </script>
+        toggleReading() {
+          if (this.readingHidden) {
+            this.readingHidden = false;
+          } else {
+            this.index += 1;
+            this.showNewWord();
+          }
+        },
+
+        goToJisho() {
+          window.open(`https://jisho.org/search/${encodeURIComponent(this.currentWord.word)}`, '_blank');
+        },
+
+        backToHome() {
+          this.page = 'home';
+        },
+
+        processCSV(csvText) {
+          const lines = csvText.split(/\r\n|\n/);
+          const newVocabulary = [];
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+            const firstCommaIndex = line.indexOf(',');
+            if (firstCommaIndex !== -1) {
+              const word = line.substring(0, firstCommaIndex).trim();
+              const reading = line.substring(firstCommaIndex + 1).trim();
+              newVocabulary.push({ word, reading });
+            }
+          }
+          if (newVocabulary.length > 0) {
+            // Scramble with Fisher-Yates
+            for (let i = newVocabulary.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [newVocabulary[i], newVocabulary[j]] = [newVocabulary[j], newVocabulary[i]];
+            }
+            // Setup state to initialize the flashcard game
+            this.vocabulary = newVocabulary;
+            this.page = 'ingame';
+            this.index = 0;
+            this.showNewWord();
+          } else {
+            alert('Could not load any words from the CSV file. Make sure the format is correct.');
+          }
+        },
+
+        loadDeck(fileName) {
+          fetch(`./decks/${fileName}.csv`)
+            .then(response => {
+              if (!response.ok) throw new Error('Network response was not ok');
+              return response.text();
+            })
+            .then(csvText => {
+              this.processCSV(csvText);
+            })
+            .catch(error => {
+              console.error('Error loading local deck:', error);
+              alert('Could not load local deck file.');
+            });
+        },
+
+        handleFile(file) {
+          if (file?.type === 'text/csv' || file?.name.endsWith('.csv')) {
+            const reader = new FileReader();
+            reader.onload = (e) => this.processCSV(e.target.result);
+            reader.readAsText(file);
+          } else {
+            alert('Please select a valid CSV file.');
+          }
+        },
+
+        handleDrop(event) {
+          this.isDraggingFile = false;
+          this.handleFile(event.dataTransfer.files[0]);
+        },
+
+        handleFileSelect(event) {
+          this.handleFile(event.target.files[0]);
+        },
+      };
+    }
+  </script>
 </body>
 </html>
