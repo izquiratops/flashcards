@@ -107,13 +107,6 @@
                  class="mt-4 text-sm text-green-600">
                 Word copied to clipboard
             </div>
-
-            <button 
-                @click="nextWord()" 
-                class="mt-6 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded text-sm transition-colors"
-            >
-                Next Word
-            </button>
         </div>
     </div>
 
@@ -121,28 +114,6 @@
         function flashcardApp() {
             return {
                 vocabulary: [],
-                defaultVocabulary: [
-                    { word: '復習', reading: 'ふくしゅう', translation: 'Review' },
-                    { word: 'バス', reading: 'ばす', translation: 'Bus' },
-                    { word: '学校', reading: 'がっこう', translation: 'School' },
-                    { word: '予約', reading: 'よやく', translation: 'Reservation' },
-                    { word: 'お正月', reading: 'おしょうがつ', translation: 'New Year' },
-                    { word: '掃除', reading: 'そうじ', translation: 'Cleaning' },
-                    { word: '料理', reading: 'りょうり', translation: 'Cooking, food' },
-                    { word: '切符', reading: 'きっぷ', translation: 'Ticket' },
-                    { word: '図書館', reading: 'としょかん', translation: 'Library' },
-                    { word: '来月', reading: 'らいげつ', translation: 'Next month' },
-                    { word: '名古屋', reading: 'なごや', translation: 'Nagoya (city)' },
-                    { word: '引っ越し', reading: 'ひっこし', translation: 'Moving house' },
-                    { word: '富士山', reading: 'ふじさん', translation: 'Mount Fuji' },
-                    { word: '登りたい', reading: 'のぼりたい', translation: 'Want to climb' },
-                    { word: 'スポーツ', reading: 'すぽーつ', translation: 'Sports' },
-                    { word: '体', reading: 'からだ', translation: 'Body' },
-                    { word: '高校野球', reading: 'こうこうやきゅう', translation: 'High school baseball' },
-                    { word: '友達', reading: 'ともだち', translation: 'Friend' },
-                    { word: '問題', reading: 'もんだい', translation: 'Problem, question' },
-                    { word: '意見', reading: 'いけん', translation: 'Opinion' }
-                ],
                 currentWord: { word: '', reading: '', translation: '' },
                 seenIndices: new Set(),
                 showingTranslation: false,
@@ -183,14 +154,10 @@
                 
                 toggleTranslation() {
                     if (this.showingTranslation) {
-                        this.nextWord();
+                        this.showNewWord();
                     } else {
                         this.showingTranslation = true;
                     }
-                },
-                
-                nextWord() {
-                    this.showNewWord();
                 },
                 
                 resetProgress() {
@@ -269,11 +236,7 @@
                         })
                         .catch(error => {
                             console.error('Error loading default vocabulary file:', error);
-                            alert('Could not load the default vocabulary file. Using built-in fallback vocabulary instead.');
-                            
-                            // Fallback to built-in vocabulary if file loading fails
-                            this.vocabulary = [...this.defaultVocabulary];
-                            this.startFlashcards();
+                            alert('Could not load the default vocabulary file.');
                         });
                 },
                 
