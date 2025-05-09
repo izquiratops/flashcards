@@ -1,114 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Japanese Vocabulary Flashcards</title>
-    <!-- Tailwind CSS via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 98.css -->
+    <link rel="stylesheet" href="https://unpkg.com/xp.css" />
     <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Custom overrides -->
+    <link rel="stylesheet" type="text/css" href="style.css">
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
-    <div class="container max-w-lg mx-auto" x-data="flashcardApp()">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Japanese Vocabulary Flashcards</h1>
-        
-        <!-- CSV Upload Area -->
-        <div x-show="!started" class="mb-8">
-            <div 
-                class="border-2 border-dashed rounded-lg p-6 mb-6 transition-all"
-                :class="isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300'"
-                @dragover.prevent="isDragging = true"
-                @dragleave="isDragging = false"
-                @drop.prevent="handleDrop($event)"
-            >
-                <p class="text-center mb-4">Drag and drop your CSV file here or click to select it</p>
-                <div class="flex justify-center">
-                    <button 
-                        @click="$refs.fileInput.click()" 
-                        class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors"
-                    >
-                        Select CSV File
-                    </button>
-                    <input 
-                        type="file" 
-                        x-ref="fileInput" 
-                        @change="handleFileSelect($event)" 
-                        accept=".csv,text/csv" 
-                        class="hidden"
-                    >
-                </div>
-                
-                <div class="mt-4 text-sm text-gray-600">
-                    <p>CSV Format: word,reading,translation</p>
-                    <p>Example: 学校,がっこう,School</p>
-                </div>
-            </div>
-            
-            <button 
-                @click="loadDefaultVocabulary()" 
-                class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors"
-            >
-                Load Default Vocabulary
-            </button>
-        </div>
-        
-        <!-- Flashcards Container -->
-        <div x-show="started" class="text-center">
-            <p class="mb-6 text-gray-600">Click on the card to see the translation. Click again to move to the next word.</p>
-            
-            <div 
-                @click="toggleTranslation()"
-                class="bg-white rounded-xl shadow-md p-8 mb-6 min-h-[200px] flex flex-col items-center justify-center cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg select-none"
-            >
-                <div class="text-3xl font-bold mb-2" x-text="currentWord.word"></div>
-                <div class="text-lg text-gray-600 mb-4" x-text="currentWord.reading"></div>
-                <div 
-                    class="text-xl text-gray-700"
-                    x-show="showingTranslation" 
-                    x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 transform scale-95"
-                    x-transition:enter-end="opacity-100 transform scale-100"
-                    x-text="currentWord.translation"
-                ></div>
-            </div>
-            
-            <div class="text-gray-600 mb-6" x-text="`Progress: ${seenCount} of ${vocabulary.length} words seen`"></div>
-            
-            <div class="flex justify-center gap-3">
-                <button 
-                    @click="copyToClipboard()" 
-                    class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded text-sm transition-colors flex items-center"
-                    :class="copied ? 'bg-green-500 hover:bg-green-600' : ''"
-                >
-                    <span x-text="copied ? 'Copied!' : 'Copy Word'"></span>
-                </button>
-                <button 
-                    @click="resetProgress()" 
-                    class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded text-sm transition-colors"
-                >
-                    Reset Progress
-                </button>
-                <button 
-                    @click="backToUpload()" 
-                    class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded text-sm transition-colors"
-                >
-                    Back to Upload
-                </button>
-            </div>
 
-            <div x-show="copied" 
-                 x-transition:enter="transition ease-out duration-300"
-                 x-transition:enter-start="opacity-0"
-                 x-transition:enter-end="opacity-100"
-                 x-transition:leave="transition ease-in duration-200"
-                 x-transition:leave-start="opacity-100"
-                 x-transition:leave-end="opacity-0"
-                 class="mt-4 text-sm text-green-600">
-                Word copied to clipboard
+<body>
+    <div class="container" x-data="flashcardApp()">
+        <div class="window">
+            <div class="title-bar">
+                <div class="title-bar-text">Japanese Vocabulary Flashcards</div>
+            </div>
+            <div class="window-body">
+                <!-- CSV Upload Area -->
+                <div x-show="!started">
+                    <div class="drop-area" :class="isDragging ? 'active' : ''" @dragover.prevent="isDragging = true"
+                        @dragleave="isDragging = false" @drop.prevent="handleDrop($event)">
+                        <p class="mb-4">
+                            Drag and drop your CSV file here or click to select it
+                        </p>
+                        <div class="field-row">
+                            <button @click="$refs.fileInput.click()">
+                                📂 Select CSV File
+                            </button>
+                            <input type="file" x-ref="fileInput" @change="handleFileSelect($event)"
+                                accept=".csv,text/csv" class="hidden">
+                        </div>
+                        <div class="mt-4">
+                            <p>CSV Format: word,reading,translation</p>
+                            <p>Example: 学校,がっこう,School</p>
+                        </div>
+                    </div>
+                    <div class="field-row">
+                        <button @click="loadDefaultVocabulary()">
+                            📚 Load N4 Vocabulary
+                        </button>
+                    </div>
+                </div>
+  
+                <!-- Flashcards Container -->
+                <div x-show="started" class="text-center">
+                    <div @click="toggleTranslation()" class="flashcard">
+                        <div class="word" x-text="currentWord.word"></div>
+                        <div class="reading" x-text="currentWord.reading"></div>
+                        <div class="translation" x-show="showingTranslation" x-text="currentWord.translation"></div>
+                    </div>
+                    <p class="mb-6">Click on the card to see the translation. Click again to move to the next word.</p>
+                    <div class="button-row">
+                        <button @click="copyToClipboard()">
+                            <span x-text="copied ? '✅ Copied!' : '📋 Copy Word'"></span>
+                        </button>
+                        <button @click="backToUpload()">
+                            🔙 Back to Upload
+                        </button>
+                    </div>
+                </div>
+            </div>
+  
+            <div class="status-bar">
+                <p x-show="started" x-text="`Progress: ${seenCount} of ${vocabulary.length} words seen`"
+                    class="status-bar-field"></p>
+                <p x-show="copied" class="status-bar-field">
+                    Word copied to clipboard
+                </p>
             </div>
         </div>
-    </div>
+    </div>  
 
     <script>
         function flashcardApp() {
@@ -120,38 +85,28 @@
                 started: false,
                 isDragging: false,
                 copied: false,
-                
                 get seenCount() {
                     return this.seenIndices.size;
                 },
-                
-                init() {
-                    // Initialization
-                },
-                
                 getRandomUniqueIndex() {
                     // If we've seen all words, reset
                     if (this.seenIndices.size >= this.vocabulary.length) {
                         this.seenIndices.clear();
                     }
-                    
                     // Find an unseen index
                     let index;
                     do {
                         index = Math.floor(Math.random() * this.vocabulary.length);
                     } while (this.seenIndices.has(index));
-                    
                     this.seenIndices.add(index);
                     return index;
                 },
-                
                 showNewWord() {
                     const index = this.getRandomUniqueIndex();
                     this.currentWord = this.vocabulary[index];
                     this.showingTranslation = false;
                     this.copied = false;
                 },
-                
                 toggleTranslation() {
                     if (this.showingTranslation) {
                         this.showNewWord();
@@ -159,12 +114,6 @@
                         this.showingTranslation = true;
                     }
                 },
-                
-                resetProgress() {
-                    this.seenIndices.clear();
-                    this.showNewWord();
-                },
-                
                 copyToClipboard() {
                     navigator.clipboard.writeText(this.currentWord.word)
                         .then(() => {
@@ -178,25 +127,20 @@
                             alert('Could not copy to clipboard. Please try again.');
                         });
                 },
-                
                 processCSV(csvText) {
                     const lines = csvText.split(/\r\n|\n/);
                     const newVocabulary = [];
-                    
                     for (let i = 0; i < lines.length; i++) {
                         const line = lines[i].trim();
                         if (!line) continue;
-                        
                         // Find the position of the first and second commas
                         const firstCommaIndex = line.indexOf(',');
                         const secondCommaIndex = line.indexOf(',', firstCommaIndex + 1);
-                        
                         // Only process if we have at least two commas
                         if (firstCommaIndex !== -1 && secondCommaIndex !== -1) {
                             const word = line.substring(0, firstCommaIndex).trim();
                             const reading = line.substring(firstCommaIndex + 1, secondCommaIndex).trim();
                             const translation = line.substring(secondCommaIndex + 1).trim();
-                            
                             newVocabulary.push({
                                 word: word,
                                 reading: reading,
@@ -204,7 +148,6 @@
                             });
                         }
                     }
-                    
                     if (newVocabulary.length > 0) {
                         this.vocabulary = newVocabulary;
                         this.startFlashcards();
@@ -212,17 +155,14 @@
                         alert('Could not load any words from the CSV file. Make sure the format is correct.');
                     }
                 },
-                
                 startFlashcards() {
                     this.seenIndices.clear();
                     this.started = true;
                     this.showNewWord();
                 },
-                
                 backToUpload() {
                     this.started = false;
                 },
-                
                 loadDefaultVocabulary() {
                     fetch('JLPT N4.csv')
                         .then(response => {
@@ -239,18 +179,15 @@
                             alert('Could not load the default vocabulary file.');
                         });
                 },
-                
                 handleDrop(event) {
                     this.isDragging = false;
                     const files = event.dataTransfer.files;
                     this.handleFiles(files);
                 },
-                
                 handleFileSelect(event) {
                     const files = event.target.files;
                     this.handleFiles(files);
                 },
-                
                 handleFiles(files) {
                     if (files.length > 0) {
                         const file = files[0];
@@ -267,6 +204,19 @@
                 }
             };
         }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
     </script>
 </body>
+
 </html>
