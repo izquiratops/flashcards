@@ -2,6 +2,7 @@ const CACHE_NAME = 'flashcards-v1';
 const urlsToCache = [
   './',
   './index.html',
+  './icon.jpg',
   './JLPT_N4.csv',
   './ドリル.csv'
 ];
