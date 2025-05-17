@@ -1,5 +1,5 @@
 :root {
-    --pico-border-radius: 2rem;
+    --pico-border-radius: 6px;
 }
 
 p, progress {
@@ -10,7 +10,7 @@ p, progress {
     height: 100svh;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: center;
 }
 
 .text-center {

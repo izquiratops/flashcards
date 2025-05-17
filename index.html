@@ -1,32 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flashcards</title>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="./main.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.pink.min.css">
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body x-data="flashcardApp()">
   <main class="container">
-    <h1 class="text-center">頑張りましょう 🎊</h1>
+    <h1>頑張りましょう 🎊</h1>
     <!-- 1. Home Screen -->
     <article x-show="page === 'home'" class="drag-and-drop text-center" :class="isDraggingFile ? 'border-primary' : ''"
       @dragover.prevent="isDraggingFile = true" @dragleave="isDraggingFile = false" @drop.prevent="handleDrop($event)">
       <p>ファイルを<strong>ここ</strong>にドロップしてください</p>
+
       <button @click="$refs.fileInput.click()">ファイルを選択</button>
+
       <input type="file" x-ref="fileInput" @change="handleFileSelect($event)" accept=".csv,text/csv"
         style="display: none;">
+
       <small>
         <p>CSV Format: word,reading</p>
         <p>Example: 学校,がっこう</p>
       </small>
     </article>
+
     <section x-show="page === 'home'">
-      <h3 class="text-center">プレビルトデッキ 🐣</h3>
+      <h3>プレビルトデッキ 🐣</h3>
       <div class="grid">
         <template x-for="(deck, index) in decks" :key="index">
           <button @click="loadDeck(deck)">
@@ -35,11 +40,13 @@
         </template>
       </div>
     </section>
+
     <!-- 2. Ingame Screen -->
     <article x-show="page === 'ingame'" @click="toggleReading()" class="flashcard">
       <h1 x-text="currentWord.word"></h1>
       <h3 :class="readingHidden ? 'hidden' : ''" x-text="currentWord.reading"></h3>
     </article>
+
     <section x-show="page === 'ingame'" class="text-center">
       <p x-text="`${index} of ${vocabulary.length} words seen`"></p>
       <progress :value="index + 1" :max="vocabulary.length + 1"></progress>
@@ -48,104 +55,8 @@
         <button class="secondary" @click="backToHome()">ホームへ</button>
       </div>
     </section>
+
   </main>
-  <script>
-    function flashcardApp() {
-      return {
-        decks: ["JLPT_N1","JLPT_N2","JLPT_N3","JLPT_N4","JLPT_N5","ドリル"],
-        vocabulary: [],
-        currentWord: { word: '', reading: '' },
-        index: 0,
-        page: 'home', // 'home' or 'ingame'
-        isDraggingFile: false,
-        readingHidden: true,
-
-        showNewWord(index) {
-          this.readingHidden = true;
-          this.currentWord = this.vocabulary[this.index];
-        },
-
-        toggleReading() {
-          if (this.readingHidden) {
-            this.readingHidden = false;
-          } else {
-            this.index += 1;
-            this.showNewWord();
-          }
-        },
-
-        goToJisho() {
-          window.open(`https://jisho.org/search/${encodeURIComponent(this.currentWord.word)}`, '_blank');
-        },
-
-        backToHome() {
-          this.page = 'home';
-        },
-
-        processCSV(csvText) {
-          const lines = csvText.split(/\r\n|\n/);
-          const newVocabulary = [];
-          for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].trim();
-            if (!line) continue;
-            const firstCommaIndex = line.indexOf(',');
-            if (firstCommaIndex !== -1) {
-              const word = line.substring(0, firstCommaIndex).trim();
-              const reading = line.substring(firstCommaIndex + 1).trim();
-              newVocabulary.push({ word, reading });
-            }
-          }
-          if (newVocabulary.length > 0) {
-            // Scramble with Fisher-Yates
-            for (let i = newVocabulary.length - 1; i > 0; i--) {
-              const j = Math.floor(Math.random() * (i + 1));
-              [newVocabulary[i], newVocabulary[j]] = [newVocabulary[j], newVocabulary[i]];
-            }
-            // Setup state to initialize the flashcard game
-            this.vocabulary = newVocabulary;
-            this.page = 'ingame';
-            this.index = 0;
-            this.showNewWord();
-          } else {
-            alert('Could not load any words from the CSV file. Make sure the format is correct.');
-          }
-        },
-
-        loadDeck(fileName) {
-          fetch(`./decks/${fileName}.csv`)
-            .then(response => {
-              if (!response.ok) throw new Error('Network response was not ok');
-              return response.text();
-            })
-            .then(csvText => {
-              this.processCSV(csvText);
-            })
-            .catch(error => {
-              console.error('Error loading local deck:', error);
-              alert('Could not load local deck file.');
-            });
-        },
-
-        handleFile(file) {
-          if (file?.type === 'text/csv' || file?.name.endsWith('.csv')) {
-            const reader = new FileReader();
-            reader.onload = (e) => this.processCSV(e.target.result);
-            reader.readAsText(file);
-          } else {
-            alert('Please select a valid CSV file.');
-          }
-        },
-
-        handleDrop(event) {
-          this.isDraggingFile = false;
-          this.handleFile(event.dataTransfer.files[0]);
-        },
-
-        handleFileSelect(event) {
-          this.handleFile(event.target.files[0]);
-        },
-      };
-    }
-  </script>
 </body>
+
 </html>

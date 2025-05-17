@@ -44,13 +44,13 @@ jobs:
             echo "DECK_NAMES_JSON: $DECK_NAMES_JSON"
 
             # Replace the decks array, regardless of its current contents
-            sed -i.blk -E "s|decks: \[[^]]*\]|decks: $DECK_NAMES_JSON|" ./index.html
+            sed -i.blk -E "s|decks: \[[^]]*\]|decks: $DECK_NAMES_JSON|" ./main.js
           fi
 
       - name: Commit changes
         run: |
-          git add index.html
+          git add index.html main.js
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          git commit -m "Update index.html with CSV decks" || echo "No changes to commit"
+          git commit -m "Update CSV decks" || echo "No changes to commit"
           git push origin main
